@@ -31,4 +31,23 @@ public class CeruleanButtonScript : MonoBehaviour
         );
         Debug.LogFormat("[The Cerulean Button #{0}] Answer: {1}, Constraints: {2}, Left Cube: {3}, Right Cube: {4}", _id, c.Answer, c.Constraints.Select(evc => evc.Direction.ToString() + evc.Index + (char)(evc.Letter + 'A' - 1)).Join(" "), c.LeftCube, c.RightCube);
     }
+
+    [MenuItem("DoStuff/DoStuff")]
+    public static void DoStuff()
+    {
+        for(int _id = 0; _id < 100; ++_id)
+        {
+
+            int seed = UnityEngine.Random.Range(0, int.MaxValue);
+            Debug.LogFormat("[The Cerulean Button #{0}] Using seed {1}.", _id, seed);
+            CeruleanButtonPuzzle c = CeruleanButtonPuzzle.GeneratePuzzle(seed,
+                s =>
+                {
+                    Debug.LogFormat("[The Cerulean Button #{0}] {1}", _id, s);
+                },
+                s => { }
+            );
+            Debug.LogFormat("[The Cerulean Button #{0}] Answer: {1}, Constraints: {2}, Left Cube: {3}, Right Cube: {4}", _id, c.Answer, c.Constraints.Select(evc => evc.Direction.ToString() + evc.Index + (char)(evc.Letter + 'A' - 1)).Join(" "), c.LeftCube, c.RightCube);
+        }
+    }
 }
