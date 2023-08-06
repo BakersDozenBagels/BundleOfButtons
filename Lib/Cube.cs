@@ -1,8 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace BlueButtonLib
 {
-    public class Cube
+    public class Cube : IEquatable<Cube>
     {
         internal Cube(int[] faces)
         {
@@ -43,6 +44,44 @@ namespace BlueButtonLib
         public override string ToString()
         {
             return $"(T:{Top} B:{Bottom} L:{Left} R:{Right} B:{Back} F:{Front})";
+        }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as Cube);
+        }
+
+        public bool Equals(Cube other)
+        {
+            return other != null &&
+                   Top == other.Top &&
+                   Bottom == other.Bottom &&
+                   Left == other.Left &&
+                   Right == other.Right &&
+                   Back == other.Back &&
+                   Front == other.Front;
+        }
+
+        public override int GetHashCode()
+        {
+            int hashCode = 321208629;
+            hashCode = hashCode * -1521134295 + Top.GetHashCode();
+            hashCode = hashCode * -1521134295 + Bottom.GetHashCode();
+            hashCode = hashCode * -1521134295 + Left.GetHashCode();
+            hashCode = hashCode * -1521134295 + Right.GetHashCode();
+            hashCode = hashCode * -1521134295 + Back.GetHashCode();
+            hashCode = hashCode * -1521134295 + Front.GetHashCode();
+            return hashCode;
+        }
+
+        public static bool operator ==(Cube left, Cube right)
+        {
+            return EqualityComparer<Cube>.Default.Equals(left, right);
+        }
+
+        public static bool operator !=(Cube left, Cube right)
+        {
+            return !(left == right);
         }
     }
 }

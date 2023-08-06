@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace BlueButtonLib
 {
-    public class CeruleanButtonPuzzle
+    public class CeruleanButtonPuzzle : IEquatable<CeruleanButtonPuzzle>
     {
         private CeruleanButtonPuzzle(BlueLatinSquare latinSquare, EndViewConstraint[] constraints, Cube leftCube, Cube rightCube, string answer)
         {
@@ -52,14 +52,15 @@ namespace BlueButtonLib
         };
 
 
-        public static CeruleanButtonPuzzle GeneratePuzzle(int seed, Action<string> log = null, Action<string> debuglog = null)
+        public static CeruleanButtonPuzzle GeneratePuzzle(int seed, Action<string> log = null, Action<string> debuglog = null, string tablestring = null)
         {
+            log ??= s => { };
+            debuglog ??= s => { };
             Random rnd = new Random(seed);
-            if(log == null)
-                log = s => { };
-            if(debuglog == null)
-                debuglog = s => { };
             int attempt = 0;
+            Dictionary<char, (int x, int y)> table = _table;
+            if(tablestring != null)
+                table = tablestring.ToDictionary(c => c, c => (TABLE.IndexOf(c) % 4, TABLE.IndexOf(c) / 4));
 
         tryagain:
             attempt++;
@@ -81,28 +82,28 @@ namespace BlueButtonLib
                 latinSquare = BlueLatinSquare.AllSquares[i];
                 char letter = answer[0];
 
-                if(_table.Any(kvp => kvp.Key != letter && latinSquare[_table[letter].x, _table[letter].y] == latinSquare[kvp.Value.x, kvp.Value.y] && latinSquare[_table[letter].x + 1, _table[letter].y] == latinSquare[kvp.Value.x + 1, kvp.Value.y]))
+                if(table.Any(kvp => kvp.Key != letter && latinSquare[table[letter].x, table[letter].y] == latinSquare[kvp.Value.x, kvp.Value.y] && latinSquare[table[letter].x + 1, table[letter].y] == latinSquare[kvp.Value.x + 1, kvp.Value.y]))
                 {
                     debuglog("First letter could not be found uniquely.");
                     continue;
                 }
 
                 letter = answer[1];
-                if(_table.Any(kvp => kvp.Key != letter && latinSquare[_table[letter].x, _table[letter].y] == latinSquare[kvp.Value.x, kvp.Value.y] && latinSquare[_table[letter].x + 1, _table[letter].y + 1] == latinSquare[kvp.Value.x + 1, kvp.Value.y + 1]))
+                if(table.Any(kvp => kvp.Key != letter && latinSquare[table[letter].x, table[letter].y] == latinSquare[kvp.Value.x, kvp.Value.y] && latinSquare[table[letter].x + 1, table[letter].y + 1] == latinSquare[kvp.Value.x + 1, kvp.Value.y + 1]))
                 {
                     debuglog("Second letter could not be found uniquely.");
                     continue;
                 }
 
                 letter = answer[2];
-                if(_table.Any(kvp => kvp.Key != letter && latinSquare[_table[letter].x, _table[letter].y] == latinSquare[kvp.Value.x, kvp.Value.y] && latinSquare[_table[letter].x + 1, _table[letter].y - 1] == latinSquare[kvp.Value.x + 1, kvp.Value.y - 1]))
+                if(table.Any(kvp => kvp.Key != letter && latinSquare[table[letter].x, table[letter].y] == latinSquare[kvp.Value.x, kvp.Value.y] && latinSquare[table[letter].x + 1, table[letter].y - 1] == latinSquare[kvp.Value.x + 1, kvp.Value.y - 1]))
                 {
                     debuglog("Third letter could not be found uniquely.");
                     continue;
                 }
 
                 letter = answer[3];
-                if(_table.Any(kvp => kvp.Key != letter && latinSquare[_table[letter].x, _table[letter].y] == latinSquare[kvp.Value.x, kvp.Value.y] && latinSquare[_table[letter].x + 1, _table[letter].y] == latinSquare[kvp.Value.x + 1, kvp.Value.y]))
+                if(table.Any(kvp => kvp.Key != letter && latinSquare[table[letter].x, table[letter].y] == latinSquare[kvp.Value.x, kvp.Value.y] && latinSquare[table[letter].x + 1, table[letter].y] == latinSquare[kvp.Value.x + 1, kvp.Value.y]))
                 {
                     debuglog("Fourth letter could not be found uniquely.");
                     continue;
@@ -112,14 +113,14 @@ namespace BlueButtonLib
                 //EH F   J N
                 //    I G   M
 
-                int top = latinSquare[_table[answer[3]].x + 1, _table[answer[3]].y + 1];
-                int inner = latinSquare[_table[answer[3]].x, _table[answer[3]].y];
-                int leftOuter = latinSquare[_table[answer[0]].x, _table[answer[0]].y];
-                int leftBottom = latinSquare[_table[answer[2]].x, _table[answer[2]].y];
-                int leftBack = latinSquare[_table[answer[1]].x, _table[answer[1]].y];
-                int rightOuter = latinSquare[_table[answer[1]].x + 1, _table[answer[1]].y + 1];
-                int rightBottom = latinSquare[_table[answer[2]].x + 1, _table[answer[2]].y - 1];
-                int rightBack = latinSquare[_table[answer[0]].x + 1, _table[answer[0]].y];
+                int top = latinSquare[table[answer[3]].x + 1, table[answer[3]].y + 1];
+                int inner = latinSquare[table[answer[3]].x, table[answer[3]].y];
+                int leftOuter = latinSquare[table[answer[0]].x, table[answer[0]].y];
+                int leftBottom = latinSquare[table[answer[2]].x, table[answer[2]].y];
+                int leftBack = latinSquare[table[answer[1]].x, table[answer[1]].y];
+                int rightOuter = latinSquare[table[answer[1]].x + 1, table[answer[1]].y + 1];
+                int rightBottom = latinSquare[table[answer[2]].x + 1, table[answer[2]].y - 1];
+                int rightBack = latinSquare[table[answer[0]].x + 1, table[answer[0]].y];
 
                 for(int lfront = 1; lfront <= 3; lfront++)
                 {
@@ -206,6 +207,44 @@ namespace BlueButtonLib
             EndViewConstraint[] reducedConstraints = Ut.ReduceRequiredSet(allConstraints, s => EndViewConstraint.IsUnique(s.SetToTest.ToArray()), skipConsistencyTest: true).ToArray();
 
             return new CeruleanButtonPuzzle(latinSquare, reducedConstraints, leftFinal, rightFinal, answer);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as CeruleanButtonPuzzle);
+        }
+
+        public bool Equals(CeruleanButtonPuzzle other)
+        {
+            return other != null &&
+                   EqualityComparer<BlueLatinSquare>.Default.Equals(LatinSquare, other.LatinSquare) &&
+                   Constraints.OrderBy(c => c).SequenceEqual(other.Constraints.OrderBy(c => c)) &&
+                   EqualityComparer<Cube>.Default.Equals(LeftCube, other.LeftCube) &&
+                   EqualityComparer<Cube>.Default.Equals(RightCube, other.RightCube) &&
+                   Answer == other.Answer &&
+                   Size == other.Size;
+        }
+
+        public override int GetHashCode()
+        {
+            int hashCode = -624709155;
+            hashCode = hashCode * -1521134295 + EqualityComparer<BlueLatinSquare>.Default.GetHashCode(LatinSquare);
+            hashCode = hashCode * -1521134295 + EqualityComparer<EndViewConstraint[]>.Default.GetHashCode(Constraints);
+            hashCode = hashCode * -1521134295 + EqualityComparer<Cube>.Default.GetHashCode(LeftCube);
+            hashCode = hashCode * -1521134295 + EqualityComparer<Cube>.Default.GetHashCode(RightCube);
+            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Answer);
+            hashCode = hashCode * -1521134295 + Size.GetHashCode();
+            return hashCode;
+        }
+
+        public static bool operator ==(CeruleanButtonPuzzle left, CeruleanButtonPuzzle right)
+        {
+            return EqualityComparer<CeruleanButtonPuzzle>.Default.Equals(left, right);
+        }
+
+        public static bool operator !=(CeruleanButtonPuzzle left, CeruleanButtonPuzzle right)
+        {
+            return !(left == right);
         }
     }
 }

@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace BlueButtonLib
 {
-    public sealed class BlueLatinSquare
+    public sealed class BlueLatinSquare : IEquatable<BlueLatinSquare>
     {
         public int this[int row, int col] => _cells[(row % 4 + 4) % 4 * 4 + (col % 4 + 4) % 4];
         public static readonly ReadOnlyCollection<BlueLatinSquare> AllSquares = BLSData.GenerateAllSquares();
@@ -34,6 +34,32 @@ namespace BlueButtonLib
                     if(this[x, y] == toFind)
                         locs.Add(new OrderedPair() { X = x, Y = y });
             return locs.ToArray();
+        }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as BlueLatinSquare);
+        }
+
+        public bool Equals(BlueLatinSquare other)
+        {
+            return other != null &&
+                _cells.SequenceEqual(other._cells);
+        }
+
+        public override int GetHashCode()
+        {
+            return 908360967 + EqualityComparer<ReadOnlyCollection<int>>.Default.GetHashCode(_cells);
+        }
+
+        public static bool operator ==(BlueLatinSquare left, BlueLatinSquare right)
+        {
+            return EqualityComparer<BlueLatinSquare>.Default.Equals(left, right);
+        }
+
+        public static bool operator !=(BlueLatinSquare left, BlueLatinSquare right)
+        {
+            return !(left == right);
         }
     }
 }
